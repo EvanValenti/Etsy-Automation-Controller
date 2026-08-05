@@ -1,0 +1,23 @@
+"""JobRepository interface. SQLite implementation: infra/db/sqlite_repositories.py."""
+
+from __future__ import annotations
+
+from typing import Protocol
+
+from core.domain.job import Job, JobStatus
+
+
+class JobRepository(Protocol):
+    def add(self, job: Job) -> None: ...
+
+    def get(self, job_id: str) -> Job | None: ...
+
+    def update(self, job: Job) -> None: ...
+
+    def delete(self, job_id: str) -> None: ...
+
+    def list_by_status(self, status: JobStatus) -> list[Job]: ...
+
+    def list_by_pipeline_run(self, pipeline_run_id: str) -> list[Job]: ...
+
+    def list_all(self) -> list[Job]: ...

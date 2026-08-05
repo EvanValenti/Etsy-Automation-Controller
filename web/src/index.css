@@ -1,0 +1,1132 @@
+/* =========================================================================
+   VILICITY DESIGN FOUNDATION
+   The Automation Controller is the first application in the Vilicity
+   ecosystem, so this token layer is written to be inherited by every
+   application that follows (Image/Mockup/Video Generators, Research
+   Assistant, Analytics). Components consume tokens, never raw hex.
+
+   Two rules govern colour here:
+     1. Indigo is the BRAND. It carries identity and structure -- focus,
+        selection, active navigation. It is never an action.
+     2. Orange is the ACTION, and only ever a primary action (Create,
+        Generate, Continue, Build, Publish). If orange appears on a screen
+        it means "this is the thing to press."
+   Everything else is charcoal and slate, so those two carry real meaning
+   instead of competing with decoration.
+
+   Replaced the previous "phosphor amber console" palette, where a single
+   amber served as brand, primary action AND the running state at once --
+   three different meanings in one colour, which left the operator no way
+   to tell identity from instruction.
+
+   Every foreground token below is contrast-audited against --bg, --panel
+   and --panel-raised at WCAG AA for body text (worst case >= 4.7:1).
+   ========================================================================= */
+:root {
+  color-scheme: dark;
+
+  /* -- Surfaces: charcoal base, cool slate cast ------------------------- */
+  --bg: #0b0e13;
+  --panel: #111621;
+  --panel-raised: #161c28;
+  --border: #232b39;
+  --border-bright: #323c4e;
+
+  /* -- Text -------------------------------------------------------------- */
+  --text-primary: #e9edf4;
+  --text-secondary: #a7b2c2;
+  /* Used for real information (timestamps, counts, hints), so it clears AA
+     body on every surface rather than sitting at decorative contrast. */
+  --text-dim: #7d8899;
+
+  /* -- Brand: indigo ----------------------------------------------------- */
+  --brand: #818cf8;
+  --brand-solid: #6366f1;
+  /* The one indigo that carries white text: #6366f1 measures 4.47:1 with
+     white and misses AA, this measures 6.29:1. Used for the brand mark
+     and anything else that puts a label on top of the brand colour. */
+  --brand-deep: #4f46e5;
+  --brand-wash: rgba(129, 140, 248, 0.14);
+
+  /* -- Primary action: orange -------------------------------------------- */
+  /* --action-fg is the label colour ON --action-solid. It is near-black,
+     not white, because white on this orange measures 2.8:1 and fails AA
+     outright -- the most common way an orange CTA ships broken. */
+  --action: #fb923c;
+  --action-solid: #f97316;
+  --action-solid-hover: #fdba52;
+  --action-fg: #14100a;
+  --action-wash: rgba(249, 115, 22, 0.13);
+
+  /* -- Metric accents ------------------------------------------------------
+     Identity, not status. Each headline metric keeps one colour for good so
+     an operator finds "Time Saved" by its gold before they have read a
+     single word. Deliberately distinct from the status ramp below: gold is
+     a metric identity and never means "warning", which is why it sits a
+     step deeper than --state-degraded rather than matching it.
+     Applied ONLY to a tile's icon and its icon chip. The card, the border
+     and the number stay neutral, so four tiles read as one row of metrics
+     rather than four coloured panels competing for attention. */
+  --metric-gold: #e3b341;
+  --metric-indigo: #818cf8;
+  --metric-emerald: #34d399;
+
+  /* -- Status: emerald / amber / crimson --------------------------------- */
+  --state-success: #34d399;
+  --state-degraded: #fbbf24;
+  --state-failure: #fb7185;
+  --state-offline: #fb7185;
+  --state-idle: #7d8899;
+  --state-running: #818cf8;
+  --state-launching: #818cf8;
+  --state-queued: #a7b2c2;
+  --state-cancelled: #7d8899;
+
+  /* `--accent` is retained as an alias so no component has to change to
+     keep working; it now points at the brand rather than the old amber. */
+  --accent: var(--brand);
+  --accent-dim: #4c51bf;
+  --accent-glow: rgba(99, 102, 241, 0.28);
+
+  --font-mono: "Geist Mono Variable", "SFMono-Regular", ui-monospace, Menlo, Consolas, monospace;
+  --font-sans: "Geist Variable", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  /* -- Radius: one documented three-step rule ----------------------------
+     interactive (buttons, inputs, tiles) -> --radius
+     containers (panels, cards)           -> --radius-lg
+     status badges only                   -> --radius-pill
+     Nothing else invents a corner. */
+  --radius: 6px;
+  --radius-lg: 10px;
+  --radius-pill: 999px;
+
+  /* -- Type scale ----------------------------------------------------------
+     Was 19 ad-hoc sizes across the app, including five half-pixel values
+     (10.5/11.5/12.5/13.5/14.5) and three separate headings at 24/25/26.
+     Half-pixels and near-duplicates are the signature of nudging a number
+     until it looks right rather than working from a scale -- they cost
+     vertical rhythm and make two screens built a month apart disagree.
+
+     Seven steps, each a deliberate role. Tracking is size-specific: large
+     text reads too loose at 0 and needs negative tracking, small text needs
+     a touch positive to stay legible. */
+  --text-display: 25px;  /* page title -- one per screen */
+  --text-title: 17px;    /* panel/section heading */
+  --text-lg: 15px;       /* emphasised value */
+  --text-base: 13px;     /* body, button labels, table cells */
+  --text-sm: 12px;       /* supporting detail, hints */
+  --text-xs: 11px;       /* eyebrows, meta, timestamps */
+
+  --track-display: -0.022em;
+  --track-title: -0.015em;
+  --track-base: 0.005em;
+
+  /* Metric numerals. One size for the headline figure on every page, so a
+     KPI on the Dashboard and a duration on a Job read as the same kind of
+     thing. */
+  --text-metric: 30px;
+
+  /* lucide's chevron-right, for the one place an icon has to be a
+     pseudo-element (summary::before). Same path, stroke width and caps as
+     the React <ChevronRight> so both disclosure controls draw one shape. */
+  --icon-chevron-right: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m9 18 6-6-6-6'/%3E%3C/svg%3E");
+
+  /* -- Control baseline ----------------------------------------------------
+     Buttons, inputs and selects measured 31.6 / 31.8 / 33.8px, so a filter
+     row never sat on one line -- a select was 2px taller than the input
+     beside it and 1px off its baseline. A <select>'s intrinsic box differs
+     from an <input>'s, so matching padding is not enough: the height has to
+     be stated explicitly and the box model normalised. */
+  --control-h: 32px;
+
+  /* -- Spacing scale ------------------------------------------------------ */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 28px;
+  --space-7: 36px;
+  --space-8: 48px;
+
+  /* One easing for the whole system. Motion exists to acknowledge an
+     interaction, never to perform. */
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  --dur: 140ms;
+
+  /* -- Motion V2: real springs ---------------------------------------------
+     These are not eased curves pretending to be springs. Each linear() below
+     is the sampled step response of an actual damped harmonic oscillator
+     (mass-spring-damper, 44 samples), so the overshoot and settle are
+     physics rather than a hand-drawn bezier. Encoding them as linear()
+     keeps the motion on the compositor -- a spring library would run this
+     on the main thread and drop frames whenever a poll lands mid-animation.
+
+     Pick by damping ratio (zeta), i.e. how much it wants to overshoot:
+       smooth  zeta 1.00  peak 1.000  no overshoot -- structural, page/panel
+       snap    zeta 0.82  peak 1.011  barely-there -- hover, press-return
+       bounce  zeta 0.68  peak 1.054  visible      -- entrances, staggers
+       pop     zeta 0.55  peak 1.126  pronounced   -- status change, celebrate */
+  --spring-smooth: linear(0.0 0.0%, 0.0111 2.27%, 0.04 4.55%, 0.0814 6.82%, 0.131 9.09%, 0.1855 11.36%, 0.2425 13.64%, 0.3001 15.91%, 0.357 18.18%, 0.4121 20.45%, 0.4647 22.73%, 0.5145 25.0%, 0.5611 27.27%, 0.6044 29.55%, 0.6443 31.82%, 0.681 34.09%, 0.7146 36.36%, 0.7451 38.64%, 0.7728 40.91%, 0.7978 43.18%, 0.8203 45.45%, 0.8406 47.73%, 0.8587 50.0%, 0.875 52.27%, 0.8895 54.55%, 0.9024 56.82%, 0.9139 59.09%, 0.9241 61.36%, 0.9332 63.64%, 0.9412 65.91%, 0.9484 68.18%, 0.9546 70.45%, 0.9602 72.73%, 0.9651 75.0%, 0.9694 77.27%, 0.9732 79.55%, 0.9765 81.82%, 0.9795 84.09%, 0.982 86.36%, 0.9843 88.64%, 0.9863 90.91%, 0.988 93.18%, 0.9895 95.45%, 0.9909 97.73%, 1.0 100.0%);
+  --spring-snap: linear(0.0 0.0%, 0.0165 2.27%, 0.0593 4.55%, 0.12 6.82%, 0.1919 9.09%, 0.2698 11.36%, 0.3495 13.64%, 0.4282 15.91%, 0.5035 18.18%, 0.5741 20.45%, 0.6391 22.73%, 0.6978 25.0%, 0.7502 27.27%, 0.7963 29.55%, 0.8364 31.82%, 0.8708 34.09%, 0.9 36.36%, 0.9244 38.64%, 0.9447 40.91%, 0.9612 43.18%, 0.9745 45.45%, 0.985 47.73%, 0.9931 50.0%, 0.9993 52.27%, 1.0038 54.55%, 1.007 56.82%, 1.0091 59.09%, 1.0104 61.36%, 1.011 63.64%, 1.0111 65.91%, 1.0108 68.18%, 1.0103 70.45%, 1.0095 72.73%, 1.0087 75.0%, 1.0078 77.27%, 1.007 79.55%, 1.0061 81.82%, 1.0053 84.09%, 1.0045 86.36%, 1.0038 88.64%, 1.0032 90.91%, 1.0026 93.18%, 1.0021 95.45%, 1.0017 97.73%, 1.0 100.0%);
+  --spring-bounce: linear(0.0 0.0%, 0.0239 2.27%, 0.0857 4.55%, 0.1725 6.82%, 0.2735 9.09%, 0.3803 11.36%, 0.4866 13.64%, 0.5875 15.91%, 0.6801 18.18%, 0.7622 20.45%, 0.8331 22.73%, 0.8924 25.0%, 0.9407 27.27%, 0.9787 29.55%, 1.0074 31.82%, 1.028 34.09%, 1.0419 36.36%, 1.0501 38.64%, 1.0538 40.91%, 1.054 43.18%, 1.0518 45.45%, 1.0478 47.73%, 1.0427 50.0%, 1.037 52.27%, 1.0312 54.55%, 1.0255 56.82%, 1.0202 59.09%, 1.0154 61.36%, 1.0112 63.64%, 1.0076 65.91%, 1.0047 68.18%, 1.0023 70.45%, 1.0004 72.73%, 0.9991 75.0%, 0.9981 77.27%, 0.9975 79.55%, 0.9972 81.82%, 0.9971 84.09%, 0.9971 86.36%, 0.9973 88.64%, 0.9975 90.91%, 0.9978 93.18%, 0.9981 95.45%, 0.9984 97.73%, 1.0 100.0%);
+  --spring-pop: linear(0.0 0.0%, 0.0365 2.27%, 0.1299 4.55%, 0.2585 6.82%, 0.4039 9.09%, 0.5514 11.36%, 0.6903 13.64%, 0.8133 15.91%, 0.9161 18.18%, 0.9971 20.45%, 1.0564 22.73%, 1.0959 25.0%, 1.1181 27.27%, 1.1261 29.55%, 1.1233 31.82%, 1.1126 34.09%, 1.097 36.36%, 1.0789 38.64%, 1.0602 40.91%, 1.0424 43.18%, 1.0264 45.45%, 1.0129 47.73%, 1.0021 50.0%, 0.9941 52.27%, 0.9887 54.55%, 0.9855 56.82%, 0.9841 59.09%, 0.9843 61.36%, 0.9855 63.64%, 0.9873 65.91%, 0.9896 68.18%, 0.9919 70.45%, 0.9942 72.73%, 0.9963 75.0%, 0.9981 77.27%, 0.9995 79.55%, 1.0006 81.82%, 1.0013 84.09%, 1.0018 86.36%, 1.002 88.64%, 1.002 90.91%, 1.0019 93.18%, 1.0017 95.45%, 1.0014 97.73%, 1.0 100.0%);
+
+  /* A spring's duration is the settle time, not a fade length -- these must
+     travel with their curve or the physics reads wrong. */
+  --spring-dur-smooth: 420ms;
+  --spring-dur-snap: 380ms;
+  --spring-dur-bounce: 520ms;
+  --spring-dur-pop: 460ms;
+
+  /* Non-spring durations, for things that shouldn't overshoot: colour,
+     shadow, opacity. Longer than the old flat 140ms so a hover reads as a
+     surface responding rather than a value swapping. */
+  --dur-instant: 90ms;
+  --dur-fast: 180ms;
+  --dur-base: 260ms;
+
+  /* Gap between consecutive items in a staggered entrance. 55ms is long
+     enough to read as a cascade and short enough that a 4-tile row is
+     fully in within ~700ms. */
+  --stagger-step: 55ms;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  /* Flat charcoal. The grid-paper backdrop was a console motif with no
+     informational job, and it textured every surface the real content
+     had to sit on. */
+  background-color: var(--bg);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Numerals line up in columns wherever they carry meaning -- metrics,
+   counts, durations, ids. Proportional digits make a column of numbers
+   look ragged and slightly untrustworthy. */
+.mono,
+.tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+a {
+  color: inherit;
+}
+
+button {
+  font-family: inherit;
+}
+
+::selection {
+  background: var(--brand-wash);
+  color: var(--text-primary);
+}
+
+/* Thin neutral scrollbar. Chrome, not a feature. */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-bright);
+  border-radius: var(--radius-pill);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-dim);
+}
+
+.mono {
+  font-family: var(--font-mono);
+}
+
+/* Section eyebrows and field labels. Small, quiet, and sans rather than
+   tracked-out mono: these frame content, they are not content. Uppercase
+   is retained only because it distinguishes a label from a value at a
+   glance in a dense layout. */
+.label {
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+/* -- Button states --------------------------------------------------------
+   Inline styles carry the variant colours (components/Button.tsx); hover
+   and press live here because a style attribute cannot express them.
+   The press is a 1px sink -- enough to feel like the control accepted the
+   click, small enough that nobody notices it happening. */
+.btn-outline:not(:disabled):hover {
+  border-color: color-mix(in srgb, var(--action-solid) 55%, var(--border-bright));
+  background: var(--action-wash);
+  color: var(--text-primary);
+}
+.btn-primary:not(:disabled):hover {
+  background: var(--action-solid-hover);
+  border-color: var(--action-solid-hover);
+}
+.btn-nav:not(:disabled):hover {
+  background: color-mix(in srgb, var(--brand) 17%, transparent);
+  border-color: var(--brand);
+}
+.btn-utility:not(:disabled):hover {
+  background: color-mix(in srgb, var(--metric-gold) 15%, transparent);
+  border-color: var(--metric-gold);
+}
+.btn-danger:not(:disabled):hover {
+  border-color: var(--state-failure);
+  background: color-mix(in srgb, var(--state-failure) 10%, transparent);
+}
+.btn-ghost:not(:disabled):hover {
+  color: var(--text-secondary);
+  background: var(--panel-raised);
+}
+
+/* -- Control baseline -----------------------------------------------------
+   Every button, input and select in the app resolves to exactly --control-h
+   so a filter row sits on one line. `box-sizing: border-box` plus an
+   explicit height is what makes a <select> and an <input> agree; padding
+   alone never will, because their intrinsic content boxes differ.
+
+   `line-height: 1` hands vertical centring to flexbox/the control's own
+   box rather than to the font's metrics, which is what kept the old
+   controls a pixel off each other even at matching heights. */
+.control,
+.btn {
+  height: var(--control-h);
+  box-sizing: border-box;
+  border-radius: var(--radius);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: 1;
+}
+
+.control {
+  background: var(--panel-raised);
+  border: 1px solid var(--border-bright);
+  color: var(--text-primary);
+  padding: 0 10px;
+  transition:
+    border-color var(--dur-base) ease,
+    background var(--dur-base) ease,
+    box-shadow var(--dur-base) ease;
+}
+
+/* Text inputs read as data entry, so they keep the mono face; selects and
+   buttons are chrome and stay sans. */
+.control-mono {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+}
+
+.control::placeholder {
+  color: var(--text-dim);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .control:hover:not(:disabled) {
+    border-color: var(--text-dim);
+  }
+}
+
+/* A focused field gets a brand ring rather than only a border shift --
+   at 1px the old border-only focus was easy to lose on a dense page. */
+.control:focus-visible {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px var(--brand-wash);
+}
+
+.control:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+select.control {
+  cursor: pointer;
+}
+
+/* -- Button physics -------------------------------------------------------
+   A button is the most-touched object in the app, so it carries the whole
+   press cycle: rest -> hover (rises, brightens) -> down (compresses into
+   the page) -> up (springs back through its rest position).
+
+   The transform transition is the snap spring, which is what makes release
+   feel elastic instead of linear. `filter` and `box-shadow` ride a plain
+   ease because brightness overshooting would just look like a flicker. */
+.btn {
+  transform: translateY(0) scale(1);
+  transition:
+    transform var(--spring-dur-snap) var(--spring-snap),
+    box-shadow var(--dur-base) ease,
+    filter var(--dur-fast) ease,
+    background var(--dur-base) ease,
+    border-color var(--dur-base) ease,
+    color var(--dur-base) ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .btn:not(:disabled):hover {
+    transform: translateY(-2px) scale(1.015);
+    filter: brightness(1.09) saturate(1.05);
+    box-shadow: 0 8px 20px -8px rgba(0, 0, 0, 0.55);
+  }
+}
+
+/* Press: compress below rest and kill the lift. Deliberately fast and on a
+   near-linear curve -- the press should land the instant the finger does.
+   Release inherits the spring above, so the button overshoots its rest
+   position on the way back up. That overshoot IS the tactility. */
+.btn:not(:disabled):active {
+  transform: translateY(1px) scale(0.955);
+  filter: brightness(0.97);
+  box-shadow: none;
+  transition-duration: var(--dur-instant);
+  transition-timing-function: cubic-bezier(0.3, 0, 0.6, 1);
+}
+
+/* -- Job table rows -------------------------------------------------------
+   The row does not move on hover: a transform on a `display: table-row`
+   detaches it from the table's layout and the columns tear. The weight
+   comes from an inset accent bar growing on the leading edge instead.
+
+   Focus reuses the same treatment rather than the global outline ring,
+   because `outline` + `outline-offset` + `border-radius` on a table-row is
+   unreliable across browsers (the radius does nothing, and the offset ring
+   paints inconsistently). An inset shadow always paints. */
+.job-row {
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition:
+    background var(--dur-base) ease,
+    box-shadow var(--dur-base) ease;
+}
+
+.job-row--indent {
+  background: var(--panel);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .job-row:hover {
+    background: var(--panel-raised);
+    box-shadow: inset 3px 0 0 0 var(--brand);
+  }
+}
+
+.job-row:focus-visible {
+  outline: none;
+  background: var(--panel-raised);
+  /* Thicker than hover so a keyboard user can tell focus from a passing
+     cursor, and brand-coloured to match every other focus ring. */
+  box-shadow: inset 4px 0 0 0 var(--brand);
+}
+
+/* -- Quiet buttons --------------------------------------------------------
+   Text-only controls that aren't `.btn`: Back, the panel refresh readout,
+   the sidebar shortcuts hint. They were the only pressable things left in
+   the app with no hover feedback whatsoever -- and Back is the primary way
+   out of a detail page, so the one control an operator reaches for when
+   they want to leave gave them nothing back.
+
+   The negative margin cancels the padding optically: the label still lines
+   up with the content above it, but the hit target is a comfortable box
+   rather than the exact glyph bounds. */
+.btn-quiet {
+  border-radius: var(--radius);
+  padding: 5px 8px;
+  margin-left: -8px;
+  transition:
+    color var(--dur-base) ease,
+    background var(--dur-base) ease,
+    transform var(--spring-dur-snap) var(--spring-snap);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .btn-quiet:hover {
+    color: var(--text-primary);
+    background: var(--panel-raised);
+  }
+}
+
+.btn-quiet:active {
+  transform: scale(0.96);
+  transition-duration: var(--dur-instant);
+}
+
+/* Pagination numerals. 32px boxes that never acknowledged a cursor, on a
+   control whose whole job is being clicked repeatedly. */
+.page-btn {
+  transition:
+    border-color var(--dur-base) ease,
+    background var(--dur-base) ease,
+    color var(--dur-base) ease,
+    transform var(--spring-dur-snap) var(--spring-snap);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .page-btn:not([aria-current="page"]):hover {
+    border-color: var(--border-bright);
+    background: var(--panel-raised);
+    color: var(--text-primary);
+  }
+}
+
+.page-btn:active {
+  transform: scale(0.94);
+  transition-duration: var(--dur-instant);
+}
+
+/* -- Sidebar nav ----------------------------------------------------------
+   Visited constantly, so it stays cheap: no travel on the link itself, but
+   a real wash and a left rail that grows from nothing. The rail is the part
+   that reads -- a moving edge is far more legible at a glance than a 7%
+   background tint ever was. */
+.sidebar-navlink {
+  position: relative;
+  overflow: hidden;
+  transition:
+    background var(--dur-base) ease,
+    color var(--dur-base) ease,
+    transform var(--spring-dur-snap) var(--spring-snap);
+}
+
+.sidebar-navlink::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 3px;
+  height: 0;
+  border-radius: 0 2px 2px 0;
+  background: var(--brand);
+  transform: translateY(-50%);
+  transition:
+    height var(--spring-dur-bounce) var(--spring-bounce),
+    opacity var(--dur-fast) ease;
+  opacity: 0;
+}
+
+.sidebar-navlink.is-active::before {
+  height: 62%;
+  opacity: 1;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .sidebar-navlink:hover {
+    background: color-mix(in srgb, var(--brand) 15%, transparent);
+    color: var(--text-primary);
+  }
+  .sidebar-navlink:not(.is-active):hover::before {
+    height: 38%;
+    opacity: 0.55;
+  }
+}
+
+.sidebar-navlink:active {
+  transform: scale(0.982);
+  transition-duration: var(--dur-instant);
+}
+
+/* -- Disclosure (▶ collapsed / ▼ expanded) --------------------------------
+   Styling <summary> globally is what makes every expandable surface behave
+   identically without each component re-deciding: the native marker is
+   replaced by one rotating triangle, and because <summary> is already the
+   whole clickable header, "the entire first column expands the item" comes
+   for free. Matches components/DisclosureArrow.tsx, which does the same
+   job for surfaces that can't use <details> (table rows, panel headers). */
+summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  min-height: 32px;
+}
+
+summary::-webkit-details-marker {
+  display: none;
+}
+
+/* The same lucide chevron the DisclosureArrow component renders, drawn as a
+   mask so a pseudo-element can carry it. `content: "▶"` resolved through the
+   OS font fallback chain, which produced a heavy filled triangle sitting
+   next to lucide's 2px strokes everywhere else -- two disclosure controls,
+   two different shapes, on surfaces that behave identically.
+
+   mask + `background: currentColor` rather than a background-image data URI,
+   because an SVG in background-image cannot inherit `color` and would need
+   the hex hard-coded, breaking the token layer. */
+summary::before {
+  content: "";
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  margin-left: -8px;
+  flex-shrink: 0;
+  background: currentColor;
+  color: var(--text-secondary);
+  -webkit-mask: var(--icon-chevron-right) no-repeat center / 14px 14px;
+  mask: var(--icon-chevron-right) no-repeat center / 14px 14px;
+  transition: transform var(--spring-dur-snap) var(--spring-snap);
+}
+
+details[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+/* Section headings that happen to use .label read as sentence-case titles
+   here, not tracked-out console chrome — they're the name of a workflow
+   step an operator is about to open. */
+summary.label {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--text-primary);
+}
+
+/* Consistent keyboard-focus ring across every custom interactive element —
+   buttons/links/inputs use their own hover styles, but :focus-visible must
+   still be obvious for keyboard-only navigation (Step 11 shortcuts). */
+a:focus-visible,
+button:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+input:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+  border-radius: var(--radius);
+}
+
+/* `pulse` is redefined further down (Motion V2) to scale as well as dim --
+   an LED that only changed opacity read as a flat blink. */
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Panels arrive on the bounce spring with real travel and a slight scale-up,
+   and accept an --i so a page can stagger its sections. 4px and no easing
+   overshoot was invisible underneath the route crossfade. */
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: 200px 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--panel-raised) 25%, var(--border) 50%, var(--panel-raised) 75%);
+  background-size: 400px 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-radius: var(--radius);
+}
+
+/* Reduced motion means gentler, not none. Killing every duration also killed
+   the opacity fades that explain what changed, which left state swapping
+   instantly -- harder to follow, not kinder. So: strip TRAVEL (transforms,
+   spring overshoot, infinite loops) and keep the crossfades, which carry the
+   meaning and cause nobody motion sickness. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    /* Springs overshoot by definition -- neutralise the curve itself. */
+    animation-timing-function: ease-out !important;
+    transition-timing-function: ease-out !important;
+  }
+
+  .rise-in,
+  .slide-in,
+  .value-in,
+  .status-pop,
+  .page-transition {
+    animation-name: reduced-fade !important;
+    animation-duration: var(--dur-base) !important;
+    animation-delay: 0ms !important;
+  }
+
+  /* Ambient loops have no informational job -- these are the ones to stop. */
+  .badge-live,
+  .empty-idle,
+  .empty-idle > *,
+  .dot-halo::after,
+  .progress-fill::after,
+  .skeleton {
+    animation: none !important;
+  }
+
+  .card-interactive:hover,
+  .btn:not(:disabled):hover,
+  .btn:not(:disabled):active {
+    transform: none !important;
+  }
+}
+
+@keyframes reduced-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Exit is the same path in reverse, faster than the entrance -- the system
+   is dismissing itself in response to a decision the operator already
+   made, so it should get out of the way quickly rather than perform. */
+@keyframes overlay-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes dialog-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(4px) scale(0.98);
+  }
+}
+
+/* -- Route change ---------------------------------------------------------
+   The page wrapper handles the CROSSFADE only -- no Y travel. Its children
+   (.rise-in) own the movement and the stagger. Splitting it this way is
+   deliberate: when the wrapper also translated, it and the panels inside it
+   ran near-identical 4px rises at the same moment and cancelled each other
+   out into something you couldn't see. Now the page dissolves while its
+   contents fly up through it, which reads as one composed entrance. */
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: scale(0.994);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.page-transition {
+  animation: page-in var(--spring-dur-smooth) var(--spring-smooth) backwards;
+  transform-origin: 50% 0;
+}
+
+/* -- Staggered entrance ---------------------------------------------------
+   The workhorse of the dashboard. Set --i on each child (0,1,2,...) and the
+   delay falls out of it, so a list of any length staggers without a wall of
+   nth-child rules. `both` holds the from-state during the delay -- without
+   it every item flashes at full opacity before its turn.
+
+   Travels 18px and overshoots (spring-bounce peaks at 1.054), so an item
+   sails slightly past its resting place and settles back. That overshoot is
+   the difference between "it faded in" and "it arrived". */
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* `backwards`, NOT `both`. A finished animation with `both` keeps applying
+   its last keyframe forever, and animations outrank normal declarations in
+   the cascade -- so `both` here would permanently pin transform at the
+   resting value and .card-interactive:hover could never lift the card.
+   `backwards` still holds the from-state through the stagger delay (which
+   is the part that matters) and then lets go entirely once it finishes. */
+.rise-in {
+  animation: rise-in var(--spring-dur-bounce) var(--spring-bounce) backwards;
+  animation-delay: calc(var(--i, 0) * var(--stagger-step));
+}
+
+/* Same arrival, sideways -- for list rows and feed items, where a horizontal
+   entrance reads as "this was appended" rather than "this dropped in". */
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(-14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.slide-in {
+  animation: slide-in var(--spring-dur-snap) var(--spring-snap) backwards;
+  animation-delay: calc(var(--i, 0) * 28ms);
+}
+
+/* -- Interactive surfaces (cards, tiles) ----------------------------------
+   Lift, scale, brighten border, and cast a real shadow. The transform runs
+   on the snap spring in BOTH directions, so pulling the cursor away lets the
+   card fall back and overshoot slightly rather than sliding to a stop --
+   that return is what makes it feel like a physical object with weight. */
+.card-interactive {
+  transform: translateY(0) scale(1);
+  /* The border lives here, not inline on the component. An inline
+     `border: 1px solid var(--border)` always beats a stylesheet :hover rule,
+     which silently kills the border glow below. */
+  border: 1px solid var(--border);
+  transition:
+    transform var(--spring-dur-snap) var(--spring-snap),
+    box-shadow var(--dur-base) ease,
+    border-color var(--dur-base) ease,
+    background var(--dur-base) ease;
+  will-change: transform;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .card-interactive:hover {
+    transform: translateY(-6px) scale(1.014);
+    border-color: color-mix(in srgb, var(--brand) 45%, var(--border));
+    box-shadow:
+      0 20px 44px -14px rgba(0, 0, 0, 0.7),
+      0 0 0 1px color-mix(in srgb, var(--brand) 22%, transparent),
+      0 0 34px -8px color-mix(in srgb, var(--brand) 30%, transparent);
+  }
+}
+
+/* -- Status change --------------------------------------------------------
+   Fired by remounting the badge's inner content on a new status (React key),
+   so it plays exactly when the value actually changed and never on a poll
+   that returned the same thing. Scale + a colour-matched ring expanding out
+   of the pill: the badge announces itself, then goes quiet. */
+@keyframes status-pop {
+  0% {
+    transform: scale(0.86);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.status-pop {
+  animation: status-pop var(--spring-dur-pop) var(--spring-pop) backwards;
+}
+
+@keyframes status-ring {
+  0% {
+    box-shadow: 0 0 0 0 var(--ring-color, transparent);
+    opacity: 0.9;
+  }
+  100% {
+    box-shadow: 0 0 0 12px transparent;
+    opacity: 0;
+  }
+}
+
+/* Its own element rather than a pseudo-element, so React can key it on the
+   change counter and replay the ring on every subsequent status change --
+   a ::after would only ever animate once, on mount. */
+.status-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  animation: status-ring 900ms ease-out both;
+}
+
+/* A running job's badge breathes. Slow and low-amplitude so a row of them
+   reads as "these are alive" rather than as flashing alerts. */
+@keyframes badge-breathe {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+  50% {
+    box-shadow: 0 0 12px -2px var(--ring-color, transparent);
+  }
+}
+
+.badge-live {
+  animation: badge-breathe 2.4s ease-in-out infinite;
+}
+
+/* -- Status LED -----------------------------------------------------------
+   Was a flat opacity blink. Now the dot scales as it dims and throws a halo
+   that expands with it, which is what a real indicator light does. */
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(0.82);
+  }
+}
+
+@keyframes dot-halo {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.55;
+  }
+  70%,
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+.dot-halo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: inherit;
+  animation: dot-halo 1.8s ease-out infinite;
+  pointer-events: none;
+}
+
+/* -- Empty states ---------------------------------------------------------
+   An empty panel should look idle, not broken. The dashed border drifts and
+   the text breathes on a long, offset cycle -- slow enough (5s/7s) that it
+   never pulls the eye, present enough that the surface isn't a dead rectangle. */
+@keyframes empty-breathe {
+  0%,
+  100% {
+    opacity: 0.62;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes empty-drift {
+  0%,
+  100% {
+    border-color: var(--border);
+  }
+  50% {
+    border-color: var(--border-bright);
+  }
+}
+
+.empty-idle {
+  animation: empty-drift 7s ease-in-out infinite;
+}
+
+.empty-idle > * {
+  animation: empty-breathe 5s ease-in-out infinite;
+}
+
+/* -- Progress -------------------------------------------------------------
+   Used by the Job Detail progress bar, which shows the `percentage` from
+   GET /jobs/{id}/progress (see JobProgress in api/types.ts) while a job is
+   running and that number is non-null. Callers supply the track's height
+   and the fill's colour and width; the motion is all here.
+
+   Determinate fill rides a spring so a jump from 20% to 60% arrives with
+   weight instead of teleporting. The sheen is a separate, constant sweep
+   that says "still working" even when the number hasn't moved in a while. */
+.progress-track {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: var(--panel-raised);
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  transition: width var(--spring-dur-bounce) var(--spring-bounce);
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-fill::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.28), transparent);
+  animation: progress-sheen 1.6s ease-in-out infinite;
+}
+
+@keyframes progress-sheen {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+/* -- Polling refresh ------------------------------------------------------
+   One 360 on the snap spring when a poll lands, so a background refresh is
+   something you SEE happen rather than a number that silently changed. */
+@keyframes refresh-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.refresh-tick {
+  animation: refresh-spin var(--spring-dur-bounce) var(--spring-bounce);
+}
+
+/* -- Value change ---------------------------------------------------------
+   For text that swaps without a count-up (labels, relative times): the old
+   value blurs out as the new one sharpens in. Blur bridges the crossfade so
+   the eye reads one value transforming, not two values overlapping. */
+@keyframes value-in {
+  from {
+    opacity: 0;
+    filter: blur(4px);
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+}
+
+.value-in {
+  animation: value-in var(--spring-dur-snap) var(--spring-snap) backwards;
+}
+
+/* -- Responsive grids (Step 11) ------------------------------------------
+   auto-fit/minmax collapses column count as viewport shrinks without any
+   media queries — the same grid definition works from a 1280px desktop
+   down to a narrow window. */
+/* min() on the track floor is what keeps these from overflowing on a
+   viewport narrower than the stated minimum: a bare minmax(230px, 1fr)
+   track cannot shrink below 230px and forces a horizontal scrollbar at
+   ~300px wide. With min(230px, 100%) the track collapses to the
+   container instead, so cards wrap and shrink but never overflow. */
+.grid-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr));
+  gap: var(--space-3);
+}
+
+.grid-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
+  gap: var(--space-3);
+}
+
+.grid-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  gap: var(--space-5);
+  align-items: start;
+}
+
+.grid-split-even {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--space-5);
+  align-items: start;
+}
+
+@media (max-width: 880px) {
+  .grid-split,
+  .grid-split-even {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 720px) {
+  .app-shell {
+    flex-direction: column;
+  }
+  .app-sidebar {
+    width: 100% !important;
+    height: auto !important;
+    position: relative !important;
+    flex-direction: row !important;
+    align-items: center;
+    padding: var(--space-2) var(--space-3) !important;
+    gap: var(--space-3);
+  }
+  .app-sidebar-brand,
+  .app-sidebar-footer {
+    display: none !important;
+  }
+  .app-sidebar nav {
+    flex-direction: row !important;
+    padding: 0 !important;
+  }
+  .app-main {
+    padding: var(--space-4) var(--space-3) !important;
+  }
+}
