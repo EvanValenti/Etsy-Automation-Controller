@@ -167,6 +167,8 @@ npm install
 | `AUTOMATION_CONTROLLER_ENGINES_ROOT` | backend process env | Directory the Controller searches for sibling engine repos (see **Engine Discovery**) | Computed from this file's own location if unset — set this explicitly rather than relying on that default. |
 | `AUTOMATION_CONTROLLER_API_PORT` | backend process env | Overrides the API port | `8123` |
 | `VITE_API_BASE_URL` | `web/.env.local` (copy from `web/.env.example`) | Where the Web UI expects the API | `http://127.0.0.1:8123` |
+| `VILICITY_RUNTIME_ROOT` | backend process env | Optional shared folder (e.g. OneDrive) for the multi-machine job-history feature — see `docs/shared-runtime.md` | Local-only `var/vilicity_runtime/`, never shared |
+| `VILICITY_MACHINE_ID` | backend process env | Optional friendlier/stable override for the machine identifier used to keep two machines' published jobs from colliding | OS hostname |
 
 If you change the API port, update `VITE_API_BASE_URL` to match and
 restart the Vite dev server — `.env` files are read at startup, not per
@@ -305,25 +307,74 @@ the project.
 
 ## Current State
 
-This is a scaffold: the folder/package structure, domain entities, event
-types, the `EngineAdapter` protocol, repository interfaces, application
-service and Execution Coordinator class shapes, the three concrete engine
-adapters (matching the design spec's V1 adapters table), and the FastAPI
-route surface all exist as placeholders — signatures and docstrings, most
-method bodies raising `NotImplementedError`. The Event Bus (`core/events/`)
-is the one component implemented for real, per the design spec's own
-"don't overbuild V1 ... in-memory event bus, not a message broker"
-guidance. The `/events` WebSocket route is likewise not yet implemented.
+The core job lifecycle is implemented and tested end to end, not a
+scaffold: a Job moves `validated -> queued -> running -> succeeded /
+failed / cancelled` through `JobService`'s guarded status transitions
+(`core/services/job_service.py`), with the `ExecutionCoordinator`
+(`core/execution/coordinator.py`) as the only component authorized to
+call `adapter.launch()`/`adapter.cancel()`. Every transition is
+append-only-logged via `JobEvent` (`core/domain/job_event.py`), and
+`MonitoringService` derives progress, per-engine health, and metrics
+from that event log on demand rather than from a second, separately
+mutated copy of the same state.
+
+**Cancellation is race-safe by construction.** `ExecutionCoordinator.
+cancel_job()` marks a Job `CANCELLED` in the database *before* calling
+`adapter.cancel()`, so a concurrent in-flight `evaluate()` call that
+finishes (successfully or not) after the cancellation always loses the
+race via a guarded `InvalidJobStatusTransitionError` and never
+overwrites a user-initiated cancellation with a stale success/failure
+result. Process termination goes through platform process-tree kill
+logic in each subprocess-based adapter, not a single PID signal.
+
+**Engine adapters** (`infra/adapters/<engine>/adapter.py`) for the Video
+Generator, AI Image Generator, and Mockup Generator are real, launching
+each engine's own headless worker as a subprocess and polling for
+completion — never importing an engine's own code. **Human-review /
+approval gates** are implemented per engine, directly in each engine's
+own route module (concept approval, prompt review, generated-image
+review for the AI Image Generator; preview/batch approval for the
+Mockup Generator — see `api/image_generator_routes.py`,
+`api/mockup_generator_routes.py`) rather than through the generic
+cross-engine `Approval`/`Pipeline` abstractions in `core/`, which remain
+scaffolded (signatures + docstrings, `NotImplementedError` bodies) for a
+future cross-engine pipeline feature that isn't built yet — see
+**Future Architecture Direction** below.
+
+**Also implemented:** listing asset package assembly across engines
+(`infra/listing_workspace.py`), safe job/workspace deletion that only
+ever recycles a Job's own output — never a shared template or another
+Job's still-referenced path — via the Windows Recycle Bin, never a
+permanent delete (`infra/cleanup.py`), lifetime metrics
+(`infra/lifetime_metrics.py`), and an optional shared-runtime feature
+(`infra/runtime_root.py` / `runtime_publisher.py` / `runtime_index.py`,
+see `docs/shared-runtime.md`) that lets two independent local clones
+(e.g. a desktop and a laptop) see the same completed-job history through
+a synced folder such as OneDrive, entirely opt-in via one environment
+variable and never part of either Git repository.
+
+**Not yet implemented:** the generic cross-engine `PipelineService`/
+`ApprovalService` abstractions (`core/services/pipeline_service.py`,
+`core/services/approval_service.py` — see their docstrings), automatic
+event-driven re-evaluation on `EngineCompleted`/`EngineFailed`/
+`ApprovalResolved`/`PipelineAdvanced` (the Coordinator currently reaches
+the same outcome through a disclosed synchronous bridge called directly
+from `api/main.py`, not through the Event Bus these handlers are wired
+to but never fired for), and the `/events` WebSocket route.
 
 ## Future Architecture Direction
 
 The design's explicit stance is that the Controller's core architecture
 is built around the permanent target state — every engine behind one
-uniform adapter contract — while individual adapters are allowed to be
-incomplete or simulated where their underlying engine isn't ready yet.
-As sibling engines mature (e.g. gaining their own headless, non-
-interactive entry points), their adapters can be filled in without any
-change to `core/` or the adapter interface itself. See
-`docs/architecture/CONTROLLER-V1-ARCHITECTURE-INSPECTION.md` for a
-per-engine assessment of what each sibling repo still needs before its
-adapter can be fully real rather than partially simulated.
+uniform adapter contract, and eventually a real cross-engine pipeline
+running purely off Event Bus events — while individual pieces are
+allowed to be incomplete where the underlying need isn't there yet. The
+per-engine approval routes described above are the practical, working
+V1 path; folding them into the generic `ApprovalService`/
+`PipelineService` abstractions (so a future multi-engine pipeline could
+pause on any engine's approval uniformly) is the next architectural
+step, not a V1 requirement. As sibling engines mature (e.g. gaining
+their own headless, non-interactive entry points), their adapters can be
+filled in further without any change to `core/` or the adapter interface
+itself. See `docs/architecture/CONTROLLER-V1-ARCHITECTURE-INSPECTION.md`
+for a per-engine assessment of what each sibling repo still needs.

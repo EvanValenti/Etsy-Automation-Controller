@@ -62,6 +62,7 @@ from infra.db.sqlite_repositories import (
     SqlitePipelineRepository,
 )
 from infra.lifetime_metrics import LifetimeMetricsLedger
+from infra.runtime_publisher import RuntimePublisher
 
 # One in-process Event Bus for the whole application (design spec Section 2:
 # "an in-process, framework-independent event bus"). A single module-level
@@ -177,3 +178,16 @@ def get_monitoring_service(
     coordinator: ExecutionCoordinator = Depends(get_execution_coordinator),
 ) -> MonitoringService:
     return MonitoringService(job_service, job_event_repository, engine_registry, coordinator)
+
+
+def get_runtime_publisher(
+    job_service: JobService = Depends(get_job_service),
+    monitoring_service: MonitoringService = Depends(get_monitoring_service),
+) -> RuntimePublisher:
+    """Publishes completed Jobs into the shared runtime root (see
+    infra/runtime_root.py / infra/runtime_publisher.py). Reads
+    VILICITY_RUNTIME_ROOT itself (via resolve_runtime_root()'s default
+    argument) rather than taking a path here, matching how every other
+    factory in this module resolves its own configuration.
+    """
+    return RuntimePublisher(job_service, monitoring_service)

@@ -149,6 +149,7 @@ from api.dependencies import (
     get_lifetime_metrics_ledger,
     get_monitoring_service,
     get_pipeline_service,
+    get_runtime_publisher,
 )
 from api.schemas import CreateJobRequest
 from api.image_generator_routes import router as image_generator_router
@@ -173,6 +174,9 @@ from infra.cleanup import CleanupError, delete_job as cleanup_delete_job
 from infra.db.session import create_db_and_tables, engine as db_engine
 from infra.db.sqlite_repositories import SqliteEngineRepository
 from infra.lifetime_metrics import LifetimeMetricsLedger
+from infra.runtime_index import compute_shared_metrics_totals, list_shared_jobs
+from infra.runtime_publisher import RuntimePublisher
+from infra.runtime_root import is_using_configured_root, machine_id, resolve_runtime_root
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("automation_controller.startup")
@@ -655,6 +659,61 @@ def get_lifetime_metrics(
     """
     ledger.record_completed_workflows(service.list_jobs(status=JobStatus.SUCCEEDED))
     return ledger.totals()
+
+
+# -- Shared runtime (multi-computer job history via a synced folder) --------
+# See infra/runtime_root.py / infra/runtime_publisher.py / infra/runtime_index.py.
+# Distinct from /metrics/lifetime above: that ledger is this ONE machine's
+# permanent local record; this section is the optional, explicit bridge to
+# a shared root another machine (desktop/laptop) can read the same history
+# from. Publishing is on-demand (a client calls it once a Job it cares
+# about has succeeded), not automatic on every Job completion -- keeps this
+# pass from touching the job-creation/launch hot path at all.
+
+@app.get("/runtime/config")
+def get_runtime_config() -> dict[str, object]:
+    """Where this machine currently thinks the shared root is, and
+    whether that came from VILICITY_RUNTIME_ROOT or the local-only
+    default -- the one endpoint an operator needs to confirm "is my
+    laptop pointed at the same place as my desktop" without reading logs.
+    """
+    return {
+        "runtime_root": str(resolve_runtime_root()),
+        "configured": is_using_configured_root(),
+        "machine_id": machine_id(),
+    }
+
+
+@app.post("/runtime/jobs/{job_id}/publish")
+def publish_job_to_runtime(job_id: str, publisher: RuntimePublisher = Depends(get_runtime_publisher)) -> dict[str, object]:
+    """Publish one succeeded Job's stable artifacts into the shared root.
+    Idempotent (a job_key already fully published is reported as
+    already_published, never re-copied) and safe to call repeatedly, e.g.
+    from a UI action or a script, after any Job succeeds.
+    """
+    result = publisher.publish_job(job_id)
+    return result.to_dict()
+
+
+@app.get("/runtime/jobs")
+def list_runtime_jobs(engine_id: str | None = None) -> list[dict[str, object]]:
+    """Every job visible in the shared root right now, across every
+    machine that has published to it -- only ever jobs that finished
+    publishing (see infra/runtime_index.py's COMPLETE-marker check), so a
+    job another machine is still mid-copying never shows up half-done.
+    """
+    return [j.to_dict() for j in list_shared_jobs(engine_id=engine_id)]
+
+
+@app.get("/runtime/metrics")
+def get_runtime_metrics() -> dict[str, object]:
+    """Totals derived fresh from every per-job record under metrics/ --
+    never from one cumulative counter -- so two machines publishing to
+    the same root always converge on the same numbers, and a job visible
+    to both machines is still counted exactly once (deduplicated by its
+    own job_id field).
+    """
+    return compute_shared_metrics_totals()
 
 
 # -- Pipelines -----------------------------------------------------------
