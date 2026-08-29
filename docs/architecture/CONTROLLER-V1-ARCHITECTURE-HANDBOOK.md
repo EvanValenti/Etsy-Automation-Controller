@@ -27,7 +27,7 @@
 
 ## PART 1 — REPOSITORY MAP
 
-`E:\Vilicity\etsy-mockup-generator` is a **flat, script-based Python repository** — there is no `src/` package, no installed CLI entry point, no `tests/` directory, and no `docs/` folder. Everything an engineer needs is either a root-level `.py` file or a project-root data folder. This is confirmed by direct directory listing (`ls` at repo root, run 2026-07-21) and by `archive/README.md:1-44`.
+`../etsy-mockup-generator` is a **flat, script-based Python repository** — there is no `src/` package, no installed CLI entry point, no `tests/` directory, and no `docs/` folder. Everything an engineer needs is either a root-level `.py` file or a project-root data folder. This is confirmed by direct directory listing (`ls` at repo root, run 2026-07-21) and by `archive/README.md:1-44`.
 
 ```
 etsy-mockup-generator/
@@ -659,7 +659,7 @@ The **objects that DO carry meaningful state** are third-party, not repo-defined
 ---
 
 **Key files referenced throughout (absolute paths):**
-`E:\Vilicity\etsy-mockup-generator\batch_generate.py`, `E:\Vilicity\etsy-mockup-generator\prepare_input.py`, `E:\Vilicity\etsy-mockup-generator\classify_mockups.py`, `E:\Vilicity\etsy-mockup-generator\composite.py`, `E:\Vilicity\etsy-mockup-generator\shadow.py`, `E:\Vilicity\etsy-mockup-generator\human_framing.py`, `E:\Vilicity\etsy-mockup-generator\human_dynamic_framing_test_v2.py`, `E:\Vilicity\etsy-mockup-generator\human_dynamic_framing_test_v3.py`, `E:\Vilicity\etsy-mockup-generator\human_dynamic_framing_test_v4.py`, `E:\Vilicity\etsy-mockup-generator\hybrid_human_framing_v1.py`, `E:\Vilicity\etsy-mockup-generator\pose_landmark_experiment.py`, `E:\Vilicity\etsy-mockup-generator\requirements.txt`, `E:\Vilicity\etsy-mockup-generator\README.md`, `E:\Vilicity\etsy-mockup-generator\archive\README.md`, `E:\Vilicity\etsy-mockup-generator\output\regression-references\README.md`.
+`../etsy-mockup-generator/batch_generate.py`, `../etsy-mockup-generator/prepare_input.py`, `../etsy-mockup-generator/classify_mockups.py`, `../etsy-mockup-generator/composite.py`, `../etsy-mockup-generator/shadow.py`, `../etsy-mockup-generator/human_framing.py`, `../etsy-mockup-generator/human_dynamic_framing_test_v2.py`, `../etsy-mockup-generator/human_dynamic_framing_test_v3.py`, `../etsy-mockup-generator/human_dynamic_framing_test_v4.py`, `../etsy-mockup-generator/hybrid_human_framing_v1.py`, `../etsy-mockup-generator/pose_landmark_experiment.py`, `../etsy-mockup-generator/requirements.txt`, `../etsy-mockup-generator/README.md`, `../etsy-mockup-generator/archive/README.md`, `../etsy-mockup-generator/output/regression-references/README.md`.
 
 agentId: a1ef4359042aa0e63 (use SendMessage with to: 'a1ef4359042aa0e63', summary: '<5-10 word recap>' to continue this agent)
 <usage>subagent_tokens: 175942
@@ -672,7 +672,7 @@ duration_ms: 353397</usage>
 
 # Etsy-AI-Image-Generator — Automation Controller Handbook
 
-All paths below are relative to `E:\Vilicity\Etsy-AI-Image-Generator` unless stated otherwise. Citations are `file:line`.
+All paths below are relative to `../Etsy-AI-Image-Generator` unless stated otherwise. Citations are `file:line`.
 
 ---
 
@@ -1316,7 +1316,7 @@ duration_ms: 306420</usage>
 
 # Etsy Video Generator — Engineering Handbook
 
-Root: `E:\Vilicity\etsy-video-generator`. All line numbers below refer to `src/generate_video.py` unless otherwise noted.
+Root: `../etsy-video-generator`. All line numbers below refer to `src/generate_video.py` unless otherwise noted.
 
 ## PART 1 — REPOSITORY MAP
 

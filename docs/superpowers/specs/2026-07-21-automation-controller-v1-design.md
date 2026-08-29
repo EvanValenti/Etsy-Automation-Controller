@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-21
 **Status:** Approved architecture, pre-implementation
-**Location:** `E:\Vilicity\automation-controller` (new sibling project; never nested inside an engine)
+**Location:** `automation-controller` (new sibling project; never nested inside an engine)
 
 ## Context
 

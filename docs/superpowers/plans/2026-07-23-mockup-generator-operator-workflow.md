@@ -6,7 +6,7 @@
 
 **Architecture:** A new additive `headless.py` module in the engine repo exposes three non-interactive functions (`list_backgrounds`, `prepare_preview`, `generate_full_batch`); `MockupGeneratorAdapter` calls them via a subprocess worker (mirroring `_launch_worker.py`); the two-phase workflow is modeled as two sequential Controller Jobs (`phase: "preview"` then `phase: "batch"`) driven by dedicated `api/mockup_generator_routes.py` routes and a `MockupLaunchWorkflow` React component — no changes to `ApprovalService`/`PipelineService`/the `EngineAdapter` Protocol.
 
-**Tech Stack:** Python 3.11 (FastAPI, SQLModel), React + TypeScript, Pillow + mediapipe (engine side, existing venv at `E:\Vilicity\.venv`).
+**Tech Stack:** Python 3.11 (FastAPI, SQLModel), React + TypeScript, Pillow + mediapipe (engine side, existing venv at `<workspace-root>/.venv`).
 
 ## Global Constraints
 
@@ -23,7 +23,7 @@
 ## Task 1: Extract `execute_full_batch()` in the engine repo (pure refactor, zero behavior change)
 
 **Files:**
-- Modify: `E:\Vilicity\etsy-mockup-generator\batch_generate.py`
+- Modify: `../etsy-mockup-generator/batch_generate.py`
 
 **Interfaces:**
 - Produces: `execute_full_batch(grouped, background_path, design_id, zip_path, previews, total_files_extracted, pose_landmarker, face_detector, output_root_dir=OUTPUT_ROOT_DIR, processed_inputs_dir=PROCESSED_INPUTS_DIR) -> dict` with keys `run_id, run_dir, assets_dir, manifest_path, manifest, generated_counts, errors, framing_methods_used, processed_input` — consumed by both `main()` (Task 1) and `headless.generate_full_batch()` (Task 2).
@@ -194,21 +194,21 @@ Everything below this in `main()` (the `# --- Report ---` print section) is unch
 
 Run:
 ```bash
-cd /e/Vilicity/etsy-mockup-generator && python -c "import batch_generate; print('OK: module imports, execute_full_batch' in dir(batch_generate) if False else hasattr(batch_generate, 'execute_full_batch'))"
+cd ../etsy-mockup-generator && python -c "import batch_generate; print('OK: module imports, execute_full_batch' in dir(batch_generate) if False else hasattr(batch_generate, 'execute_full_batch'))"
 ```
 Expected: `True` printed, no import errors.
 
 Then run the real CLI end-to-end once with a real ZIP already in `input/` (or skip if none is staged there right now — this will be exercised for real in Task 9's live verification) to confirm `output/run-*/manifest.json` is produced with the same shape as before. If no ZIP is available yet, defer this specific check to Task 9 but still confirm the module imports cleanly and `python batch_generate.py` with an empty `input/` prints its normal "No ZIP file found" message and exits 0.
 
 ```bash
-cd /e/Vilicity/etsy-mockup-generator && python batch_generate.py
+cd ../etsy-mockup-generator && python batch_generate.py
 ```
 Expected: `No ZIP file found in input/` (assuming `input/` is currently empty), exit code 0.
 
 - [ ] **Step 4: Commit**
 
 ```bash
-cd /e/Vilicity/etsy-mockup-generator && git add batch_generate.py && git commit -m "refactor: extract execute_full_batch() so a future headless caller can reuse it"
+cd ../etsy-mockup-generator && git add batch_generate.py && git commit -m "refactor: extract execute_full_batch() so a future headless caller can reuse it"
 ```
 
 ---
@@ -216,7 +216,7 @@ cd /e/Vilicity/etsy-mockup-generator && git add batch_generate.py && git commit 
 ## Task 2: `headless.py` — the engine's new public, non-interactive interface
 
 **Files:**
-- Create: `E:\Vilicity\etsy-mockup-generator\headless.py`
+- Create: `../etsy-mockup-generator/headless.py`
 
 **Interfaces:**
 - Consumes: `batch_generate.execute_full_batch()` (Task 1); `scan_backgrounds`, `background_size_error`, `generate_category_previews`, `PREVIEW_CATEGORY_ORDER`, `BACKGROUNDS_DIR`, `OUTPUT_ROOT_DIR`, `PROCESSED_INPUTS_DIR` from `batch_generate.py`; `extract_zip` from `prepare_input.py`; `inspect_image, classify` from `classify_mockups.py`; `build_pose_landmarker_safe, build_face_detector_safe` from `human_framing.py`.
@@ -496,7 +496,7 @@ def generate_full_batch(run_token: str) -> dict[str, Any]:
 Requires at least one real Printful-style ZIP available locally and at least one background already in `backgrounds/` (both should already exist in this repo from prior manual testing — check `ls backgrounds/` and `ls test-assets/` first; use whatever real ZIP is available, e.g. from `test-assets/`).
 
 ```bash
-cd /e/Vilicity/etsy-mockup-generator && python -c "
+cd ../etsy-mockup-generator && python -c "
 import headless, json
 backgrounds = headless.list_backgrounds()
 print('backgrounds:', json.dumps(backgrounds, indent=2))
@@ -509,7 +509,7 @@ Expected: prints a non-empty JSON list, no assertion errors.
 
 Then, with a real zip path substituted for `ZIP_PATH_HERE`:
 ```bash
-cd /e/Vilicity/etsy-mockup-generator && python -c "
+cd ../etsy-mockup-generator && python -c "
 import headless, json
 backgrounds = headless.list_backgrounds()
 bg = next(b for b in backgrounds if b['usable'])
@@ -527,7 +527,7 @@ Expected: two JSON dumps print, both `assert` blocks pass, `output/run-<date>-<s
 - [ ] **Step 3: Commit**
 
 ```bash
-cd /e/Vilicity/etsy-mockup-generator && git add headless.py && git commit -m "feat: add headless.py, a non-interactive public interface for Controller integration"
+cd ../etsy-mockup-generator && git add headless.py && git commit -m "feat: add headless.py, a non-interactive public interface for Controller integration"
 ```
 
 ---
@@ -884,7 +884,7 @@ class MockupGeneratorAdapter(BaseEngineAdapter):
 - [ ] **Step 3: Verify with a real ZIP, through the adapter (not the CLI import path)**
 
 ```bash
-cd /e/Vilicity/automation-controller && python -c "
+cd automation-controller && python -c "
 from infra.adapters.mockup_generator.adapter import MockupGeneratorAdapter, list_mockup_backgrounds
 adapter = MockupGeneratorAdapter()
 caps = adapter.discover()
@@ -1027,7 +1027,7 @@ def sweep_terminal_staging_dirs(get_job) -> None:
 - [ ] **Step 2: Verify**
 
 ```bash
-cd /e/Vilicity/automation-controller && python -c "
+cd automation-controller && python -c "
 from infra.storage.mockup_generator_staging import stage_uploaded_zip, StagingValidationError, cleanup_staging_dir
 try:
     stage_uploaded_zip('notes.txt', b'hello')
@@ -1312,7 +1312,7 @@ app.include_router(mockup_generator_router)
 - [ ] **Step 3: Verify with the real dev server and `curl`**
 
 ```bash
-cd /e/Vilicity/automation-controller && uvicorn api.main:app --port 8010 &
+cd automation-controller && uvicorn api.main:app --port 8010 &
 sleep 2
 curl -s http://127.0.0.1:8010/mockup-generator/backgrounds | python -m json.tool
 kill %1
@@ -1401,14 +1401,14 @@ export function getMockupResultImageUrl(jobId: string): string {
 - [ ] **Step 4: Verify the frontend still typechecks**
 
 ```bash
-cd /e/Vilicity/automation-controller/web && npx tsc --noEmit
+cd web && npx tsc --noEmit
 ```
 Expected: no errors.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-cd /e/Vilicity/automation-controller && git add web/src/api/types.ts web/src/api/client.ts
+cd automation-controller && git add web/src/api/types.ts web/src/api/client.ts
 git commit -m "feat: add frontend API client functions for the Mockup Generator workflow"
 ```
 
@@ -1743,7 +1743,7 @@ export function MockupLaunchWorkflow() {
 - [ ] **Step 2: Typecheck**
 
 ```bash
-cd /e/Vilicity/automation-controller/web && npx tsc --noEmit
+cd web && npx tsc --noEmit
 ```
 Expected: no errors. If `Job["config"]` or `Job["error_summary"]` types don't match what's used above, adjust to match the real `Job` type in `web/src/api/types.ts` (read it before finalizing this file, per Task 6 Step 1 — do not guess field names).
 
@@ -1918,14 +1918,14 @@ Change the result-rendering conditional (currently `job.data.engine_id === VIDEO
 - [ ] **Step 5: Typecheck**
 
 ```bash
-cd /e/Vilicity/automation-controller/web && npx tsc --noEmit
+cd web && npx tsc --noEmit
 ```
 Expected: no errors.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-cd /e/Vilicity/automation-controller && git add web/src/components/mockup-generator/MockupJobResult.tsx web/src/pages/EngineDetail.tsx web/src/pages/JobDetail.tsx web/src/api/client.ts
+cd automation-controller && git add web/src/components/mockup-generator/MockupJobResult.tsx web/src/pages/EngineDetail.tsx web/src/pages/JobDetail.tsx web/src/api/client.ts
 git commit -m "feat: wire Mockup Generator result display into EngineDetail and JobDetail"
 ```
 
@@ -1938,8 +1938,8 @@ git commit -m "feat: wire Mockup Generator result display into EngineDetail and 
 - [ ] **Step 1: Start both the API and the web dev server**
 
 ```bash
-cd /e/Vilicity/automation-controller && uvicorn api.main:app --port 8010 &
-cd /e/Vilicity/automation-controller/web && npm run dev &
+cd automation-controller && uvicorn api.main:app --port 8010 &
+cd web && npm run dev &
 ```
 
 - [ ] **Step 2: Drive the full checklist through the real browser** (Claude-in-Chrome), one item at a time, noting pass/fail for each:

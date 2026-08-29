@@ -25,7 +25,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from api.main import CANONICAL_API_PORT, describe_port_mismatch  # noqa: E402
 
-UVICORN_EXE = r"E:\Vilicity\automation-controller\.venv\Scripts\uvicorn.exe"
+UVICORN_EXE = r"C:\workspace\automation-controller\.venv\Scripts\uvicorn.exe"
 
 
 class TestWarnsOnTheInvocationsThatBreakTheWebUI:
@@ -73,7 +73,7 @@ class TestStaysQuietWhenTheInvocationIsCorrect:
 
     def test_python_m_api_main_pins_the_port_itself(self):
         """main() chooses the port, so argv carries none and none is needed."""
-        assert describe_port_mismatch([r"E:\Vilicity\automation-controller\.venv\Scripts\python.exe", "-m", "api.main"]) is None
+        assert describe_port_mismatch([r"C:\workspace\automation-controller\.venv\Scripts\python.exe", "-m", "api.main"]) is None
 
     def test_a_test_runner_is_not_a_server_invocation(self):
         """pytest imports this module; it must not log a port warning."""

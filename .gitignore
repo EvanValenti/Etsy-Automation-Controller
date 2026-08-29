@@ -7,3 +7,6 @@ var/
 *.log
 .pytest_cache/
 .claude/
+.env
+.env.local
+.env.*.local
